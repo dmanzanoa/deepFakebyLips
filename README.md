@@ -110,3 +110,39 @@ This utility is intended as a preprocessing and manual-review helper for fake
 lip-sync or deepfake detection workflows. It does not train a detector by
 itself; it extracts mouth trajectories that can be used by downstream models.
 
+## Physics-Informed Mouth Consistency Model
+
+The file [src/inverse_problem.py](src/inverse_problem.py) implements a
+physics-informed model that constrains each mouth coordinate trajectory with a
+simple harmonic oscillator (SHO) equation:
+
+$$
+\ddot{q}(t) + \omega^2\left(q(t)-c\right)=0
+$$
+
+Where $q(t)$ is each landmark coordinate over time, $\omega$ is a global mouth
+oscillation frequency learned from training data, and $c$ is a learned offset.
+
+Train the model from a mouth CSV:
+
+```bash
+python src/inverse_problem.py train \
+  --train-csv outputs/real_kennedy_mouth_points.csv \
+  --model-out outputs/sho_mouth_model.json
+```
+
+Check a new test sequence for physical consistency:
+
+```bash
+python src/inverse_problem.py check \
+  --model outputs/sho_mouth_model.json \
+  --test-csv outputs/real_kennedy_mouth_points.csv \
+  --report-out outputs/sho_consistency_report.json
+```
+
+The check command returns `physically consistent: True/False` using
+training-calibrated thresholds for:
+
+- reconstruction error under SHO-constrained fitting
+- residual error from the SHO physics equation
+
