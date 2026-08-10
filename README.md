@@ -77,6 +77,62 @@ python src/extract_mouth_points_video.py \
   --annotated-video outputs/my_video_review.mp4
 ```
 
+## Process A Directory
+
+Recommended approach: create one CSV and one overlay video per input video, plus
+a `manifest.csv` that lists every result.
+
+```bash
+python src/extract_mouth_points_video.py \
+  "/home/mzo/fake_lip_sync_detection/data/raw/LipSyncTimit Dataset/Original Size/RealVideo" \
+  --output-dir outputs/real_videos
+```
+
+For each input video, this creates:
+
+```text
+outputs/real_videos/<video_name>.csv
+outputs/real_videos/<video_name>_overlay.mp4
+```
+
+It also creates:
+
+```text
+outputs/real_videos/manifest.csv
+```
+
+The manifest has:
+
+```text
+video_path,csv_path,annotated_video_path,status,processed_frames,error
+```
+
+If you also want one large CSV with all frame rows from all videos, add
+`--consolidated-csv`:
+
+```bash
+python src/extract_mouth_points_video.py \
+  "/home/mzo/fake_lip_sync_detection/data/raw/LipSyncTimit Dataset/Original Size/RealVideo" \
+  --output-dir outputs/real_videos \
+  --consolidated-csv outputs/real_videos_all.csv
+```
+
+The consolidated CSV starts with a `video_path` column so each row can be traced
+back to its source video. This file can become large for big datasets.
+
+By default, directory mode searches recursively. To process only videos directly
+inside the directory, add:
+
+```bash
+--no-recursive
+```
+
+To customize which extensions are processed:
+
+```bash
+--video-extensions .mp4,.avi,.mov
+```
+
 Process only the first 20 frames:
 
 ```bash
@@ -109,4 +165,3 @@ python src/extract_mouth_points_video.py \
 This utility is intended as a preprocessing and manual-review helper for fake
 lip-sync or deepfake detection workflows. It does not train a detector by
 itself; it extracts mouth trajectories that can be used by downstream models.
-
